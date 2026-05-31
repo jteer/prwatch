@@ -1,0 +1,24 @@
+# ~/.config/prwatch/config.yaml
+
+github:
+  # username is optional if `gh auth login` is active — resolved automatically.
+  username: your-github-username
+
+  # token_env is optional if `gh auth login` is active.
+  # Token resolution order:
+  #   1. `gh auth token`  (uses active gh CLI session — recommended)
+  #   2. os.Getenv(token_env)
+  # token_env: PRWATCH_TOKEN
+
+org: your-org              # default owner for short repo names
+
+repos:                     # repos to watch (short names under org)
+  - billing-svc
+  - api-gateway
+
+refresh_interval: 60s      # default: 60s
+
+team:                      # their reviews get highlighted
+  - jdiaz
+
+layout: twopane            # twopane (more layouts coming)

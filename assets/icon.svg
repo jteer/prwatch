@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96" role="img" aria-label="prwatch">
+  <rect x="1.5" y="1.5" width="93" height="93" rx="22" fill="#0f1117" stroke="#2b3140" stroke-width="1.5"></rect>
+  <g transform="translate(48,48)" stroke-linecap="round">
+    <circle r="23" fill="none" stroke="#4cb3e8" stroke-width="3.2"></circle>
+    <line x1="0" y1="-15.5" x2="0" y2="15.5" stroke="#4cb3e8" stroke-width="3.2"></line>
+    <circle cy="-15.5" r="3.6" fill="#4cb3e8"></circle>
+    <circle cy="15.5" r="3.6" fill="#4cb3e8"></circle>
+    <path d="M0 0 Q10 -3 16 -10" fill="none" stroke="#57b56a" stroke-width="3.2"></path>
+    <circle cx="16" cy="-10" r="4" fill="#57b56a"></circle>
+    <circle r="6.5" fill="#57b56a"></circle>
+  </g>
+</svg>

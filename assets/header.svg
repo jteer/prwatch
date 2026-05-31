@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 170" width="600" height="170" role="img" aria-label="prwatch">
+  <!-- dark panel -->
+  <rect width="600" height="170" rx="12" fill="#0f1117" stroke="#2b3140" stroke-width="1.5"/>
+
+  <!-- icon tile at (28, 31): 108×108 -->
+  <g transform="translate(28,31)">
+    <rect x="1.5" y="1.5" width="105" height="105" rx="24" fill="#0f1117" stroke="#2b3140" stroke-width="1.5"/>
+    <g transform="translate(54,54) scale(1.125)" stroke-linecap="round">
+      <circle r="23" fill="none" stroke="#4cb3e8" stroke-width="3.2"/>
+      <line x1="0" y1="-15.5" x2="0" y2="15.5" stroke="#4cb3e8" stroke-width="3.2"/>
+      <circle cy="-15.5" r="3.6" fill="#4cb3e8"/>
+      <circle cy="15.5" r="3.6" fill="#4cb3e8"/>
+      <path d="M0 0 Q10 -3 16 -10" fill="none" stroke="#57b56a" stroke-width="3.2"/>
+      <circle cx="16" cy="-10" r="4" fill="#57b56a"/>
+      <circle r="6.5" fill="#57b56a"/>
+    </g>
+  </g>
+
+  <!-- title: "pr" light, "watch" green -->
+  <text x="158" y="84" font-family="'Courier New',Courier,monospace" font-size="42" font-weight="700" letter-spacing="-0.5">
+    <tspan fill="#e7eaf0">pr</tspan><tspan fill="#57b56a">watch</tspan>
+  </text>
+
+  <!-- subtitle -->
+  <text x="160" y="110" font-family="'Courier New',Courier,monospace" font-size="13.5" fill="#828aa0">every PR across every repo,</text>
+  <text x="160" y="129" font-family="'Courier New',Courier,monospace" font-size="13.5" fill="#828aa0">without leaving your terminal.</text>
+</svg>
