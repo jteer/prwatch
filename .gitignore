@@ -1,0 +1,13 @@
+# build
+dist/
+prwatch
+
+# config
+config.yaml
+*.log
+
+# editor
+.DS_Store
+.idea/
+.vscode/
+*.swp

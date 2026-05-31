@@ -9,8 +9,6 @@
 
 ---
 
-![prwatch screenshot](https://raw.githubusercontent.com/jared/prwatch/main/prwatch-demo.png)
-
 ## Overview
 
 `prwatch` gives you a live dashboard of open PRs across your services — review status, CI state, and urgency — without leaving the terminal. It polls GitHub's GraphQL API in a single round trip and refreshes on a configurable interval.
@@ -41,7 +39,7 @@ export PRWATCH_TOKEN=ghp_...
 
 ```sh
 mkdir -p ~/.config/prwatch
-cp config.yaml.example ~/.config/prwatch/config.yaml
+cp examples/config.yaml.example ~/.config/prwatch/config.yaml
 ```
 
 Edit `~/.config/prwatch/config.yaml`:
