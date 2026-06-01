@@ -105,10 +105,11 @@ type PR struct {
 	Labels     []string
 	Reviews    ReviewSummary
 	Reviewers  []Reviewer
-	Checks     []Check
-	CI         CIState
-	Status     string // display string: "Needs Review", "Approved", etc.
-	Urgency    Urgency
+	Checks      []Check
+	CI          CIState
+	Status      string // display string: "Needs Review", "Approved", etc.
+	Urgency     Urgency
+	CommitCount int
 }
 
 func (p PR) Age() string {

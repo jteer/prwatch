@@ -15,6 +15,7 @@ import (
 	"github.com/jteer/prwatch/internal/config"
 	gh "github.com/jteer/prwatch/internal/github"
 	"github.com/jteer/prwatch/internal/logger"
+	"github.com/jteer/prwatch/internal/notify"
 	"github.com/jteer/prwatch/internal/ui/layout"
 	"github.com/jteer/prwatch/internal/ui/layout/twopane"
 )
@@ -49,6 +50,19 @@ type tickMsg time.Time
 var sortFields = []string{"age", "status", "repo"}
 var scopeFields = []string{"ALL", "mine", "review"}
 
+// -- PR snapshot for change detection ----------------------------------------
+
+type prSnapshot struct {
+	commitCount int
+	updatedAt   time.Time
+	ci          gh.CIState
+	reviews     gh.ReviewSummary
+}
+
+func prKey(pr gh.PR) string {
+	return fmt.Sprintf("%s#%d", pr.Repo, pr.Number)
+}
+
 // -- model --------------------------------------------------------------------
 
 type AppModel struct {
@@ -70,6 +84,9 @@ type AppModel struct {
 	sortIdx     int
 	scopeIdx    int
 	focusPane   int
+
+	prevPRs     map[string]prSnapshot
+	hasSnapshot bool
 
 	showHelp     bool
 	showConfig   bool
@@ -99,6 +116,7 @@ func New(cfg *config.Config, client *gh.Client, tokenSrc config.TokenSource, con
 		fetchGen:    1, // init here so Init() cmd and model agree on gen
 		inFlight:    1,
 		pausedRepos: make(map[string]bool),
+		prevPRs:     make(map[string]prSnapshot),
 		layouts:     []layout.Layout{twopane.New()},
 		configPath:  configPath,
 	}
@@ -147,6 +165,7 @@ func (m AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.inFlight == 0 {
 			m.loading = false
+			cmds = append(cmds, m.refreshComplete()...)
 		}
 		logger.Logf("[github] batch: +%d PRs, %d repos paging", len(msg.prs), len(msg.cursors))
 		return m, tea.Batch(cmds...)
@@ -174,6 +193,7 @@ func (m AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.inFlight--
 		if m.inFlight == 0 {
 			m.loading = false
+			return m, tea.Batch(m.refreshComplete()...)
 		}
 		return m, nil
 
@@ -283,11 +303,23 @@ func (m AppModel) updateConfigMode(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		m.configTab = tabRepos
 	case "2":
 		m.configTab = tabCreds
+	case "3":
+		m.configTab = tabNotifications
 	case "space":
-		if m.configTab == tabRepos && m.configRepoSel < len(repos) {
-			repo := repos[m.configRepoSel]
-			m.pausedRepos[repo] = !m.pausedRepos[repo]
-			logger.Logf("[config] toggled %s paused=%v", repo, m.pausedRepos[repo])
+		switch m.configTab {
+		case tabRepos:
+			if m.configRepoSel < len(repos) {
+				repo := repos[m.configRepoSel]
+				m.pausedRepos[repo] = !m.pausedRepos[repo]
+				logger.Logf("[config] toggled %s paused=%v", repo, m.pausedRepos[repo])
+			}
+		case tabNotifications:
+			m.cfg.Notifications = !m.cfg.Notifications
+			logger.Logf("[config] notifications=%v", m.cfg.Notifications)
+		}
+	case "t":
+		if m.configTab == tabNotifications {
+			return m, demoNotifyCmd()
 		}
 	case "enter":
 		m.configSaved = true
@@ -466,6 +498,82 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// -- notifications ------------------------------------------------------------
+
+func (m *AppModel) refreshComplete() []tea.Cmd {
+	var cmds []tea.Cmd
+	if m.hasSnapshot {
+		cmds = m.buildNotifyCmds()
+	}
+	m.updateSnapshot()
+	m.hasSnapshot = true
+	return cmds
+}
+
+func (m *AppModel) buildNotifyCmds() []tea.Cmd {
+	if !m.cfg.Notifications {
+		return nil
+	}
+	var cmds []tea.Cmd
+	for _, pr := range m.allPRs {
+		prev, ok := m.prevPRs[prKey(pr)]
+		if !ok {
+			continue
+		}
+		changes := changesFor(pr, prev)
+		if len(changes) == 0 {
+			continue
+		}
+		p := pr
+		cmds = append(cmds, notifyPRCmd(p, strings.Join(changes, "\n")))
+	}
+	return cmds
+}
+
+func changesFor(pr gh.PR, prev prSnapshot) []string {
+	var changes []string
+	if pr.CommitCount != prev.commitCount {
+		changes = append(changes, "* new commits")
+	}
+	if pr.CI != prev.ci && pr.CI != gh.CIUnknown {
+		changes = append(changes, "* CI updated")
+	}
+	if pr.Reviews.Approved != prev.reviews.Approved || pr.Reviews.Rejected != prev.reviews.Rejected {
+		changes = append(changes, "* new reviews")
+	}
+	if len(changes) == 0 && pr.UpdatedAt.After(prev.updatedAt) {
+		changes = append(changes, "* new activity")
+	}
+	return changes
+}
+
+func (m *AppModel) updateSnapshot() {
+	snap := make(map[string]prSnapshot, len(m.allPRs))
+	for _, pr := range m.allPRs {
+		snap[prKey(pr)] = prSnapshot{
+			commitCount: pr.CommitCount,
+			updatedAt:   pr.UpdatedAt,
+			ci:          pr.CI,
+			reviews:     pr.Reviews,
+		}
+	}
+	m.prevPRs = snap
+}
+
+func notifyPRCmd(pr gh.PR, body string) tea.Cmd {
+	return func() tea.Msg {
+		notify.PR(pr.Repo, pr.Number, pr.Title, body, pr.URL)
+		return nil
+	}
+}
+
+func demoNotifyCmd() tea.Cmd {
+	return func() tea.Msg {
+		notify.PR("golang/go", 42, "Add notifications", "* new commits\n* CI updated", "")
+		return nil
+	}
 }
 
 // -- commands -----------------------------------------------------------------

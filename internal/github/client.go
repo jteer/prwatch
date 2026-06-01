@@ -210,6 +210,7 @@ fragment PRFrag on Repository {
         nodes { author { login } state }
       }
       commits(last: 1) {
+        totalCount
         nodes { commit {
           statusCheckRollup { state }
           checkSuites(first: 10) { nodes {
@@ -273,7 +274,8 @@ type rawPR struct {
 		} `json:"nodes"`
 	} `json:"reviews"`
 	Commits struct {
-		Nodes []struct {
+		TotalCount int `json:"totalCount"`
+		Nodes      []struct {
 			Commit struct {
 				StatusCheckRollup *struct{ State string `json:"state"` } `json:"statusCheckRollup"`
 				CheckSuites       struct {
@@ -374,23 +376,24 @@ func (c *Client) parsePR(full string, n rawPR) PR {
 	}
 
 	return PR{
-		Repo:       full,
-		Number:     n.Number,
-		Title:      n.Title,
-		Author:     n.Author.Login,
-		CreatedAt:  created,
-		UpdatedAt:  updated,
-		URL:        n.URL,
-		Body:       n.Body,
-		IsDraft:    n.IsDraft,
-		BaseBranch: n.BaseRefName,
-		Milestone:  milestone,
-		Labels:     labels,
-		Reviews:    rev,
-		Reviewers:  reviewers,
-		Checks:     checks,
-		CI:         ci,
-		Status:     c.deriveStatus(n, rev),
+		Repo:         full,
+		Number:       n.Number,
+		Title:        n.Title,
+		Author:       n.Author.Login,
+		CreatedAt:    created,
+		UpdatedAt:    updated,
+		URL:          n.URL,
+		Body:         n.Body,
+		IsDraft:      n.IsDraft,
+		BaseBranch:   n.BaseRefName,
+		Milestone:    milestone,
+		Labels:       labels,
+		Reviews:      rev,
+		Reviewers:    reviewers,
+		Checks:       checks,
+		CI:           ci,
+		Status:       c.deriveStatus(n, rev),
+		CommitCount: n.Commits.TotalCount,
 	}
 }
 

@@ -17,6 +17,7 @@ type Config struct {
 	RefreshInterval string    `yaml:"refresh_interval"`
 	Team            []string  `yaml:"team"`
 	Layout          string    `yaml:"layout"`
+	Notifications   bool      `yaml:"notifications"`
 }
 
 type GitHubCfg struct {
