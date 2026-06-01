@@ -1,6 +1,6 @@
 # build
 dist/
-prwatch
+/prwatch
 
 # config
 config.yaml
