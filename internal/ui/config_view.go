@@ -17,9 +17,10 @@ type configTab int
 const (
 	tabRepos configTab = iota
 	tabCreds
+	tabNotifications
 )
 
-var configTabLabels = []string{"◫  Repositories", "⚷  Credentials"}
+var configTabLabels = []string{"◫  Repositories", "⚷  Credentials", "🔔  Notifications"}
 
 // renderConfig renders the full-screen config/settings view.
 // Every character carries an explicit background to prevent terminal-color bleed.
@@ -69,6 +70,8 @@ func renderConfig(m AppModel) string {
 		actionLeft = cfgKey("space", "pause/resume") + "  " + cfgKey("↵", "save")
 	case tabCreds:
 		actionLeft = cfgKey("↵", "test & save") + "  " + cfgKey("x", "sign out")
+	case tabNotifications:
+		actionLeft = cfgKey("space", "toggle") + "  " + cfgKey("t", "demo") + "  " + cfgKey("↵", "save")
 	}
 	noteColor := styles.ColorMeta
 	if m.configSaved {
@@ -146,6 +149,8 @@ func renderConfigContent(w, h int, m AppModel) string {
 		return renderReposTab(w, h, m)
 	case tabCreds:
 		return renderCredsTab(w, h, m)
+	case tabNotifications:
+		return renderNotificationsTab(w, h, m)
 	}
 	return padContent(w, h)
 }
@@ -265,6 +270,42 @@ func renderCredsTab(w, h int, m AppModel) string {
 	lines = append(lines, bgSt.Width(w).Render(""))
 	lines = append(lines, boldKey.Render("  Refresh interval")+bgSt.Width(w-17).Render(""))
 	lines = append(lines, bgSt.Width(w).Render("  "+m.cfg.RefreshInterval))
+
+	blank := bgSt.Width(w).Render("")
+	for len(lines) < h {
+		lines = append(lines, blank)
+	}
+	return strings.Join(lines[:h], "\n")
+}
+
+func renderNotificationsTab(w, h int, m AppModel) string {
+	bg := styles.ColorBg
+	bgSt := lip.NewStyle().Background(bg)
+	meta := bgSt.Foreground(styles.ColorMeta)
+	heading := bgSt.Foreground(lip.Color("#e7eaf0")).Bold(true)
+	boldKey := bgSt.Foreground(styles.ColorMeta2).Bold(true)
+
+	var toggleStr string
+	if m.cfg.Notifications {
+		toggleStr = lip.NewStyle().Background(bg).Foreground(styles.ColorGood).Bold(true).Render("[✓] enabled")
+	} else {
+		toggleStr = lip.NewStyle().Background(bg).Foreground(styles.ColorDim).Render("[ ] disabled")
+	}
+
+	var lines []string
+	lines = append(lines, bgSt.Width(w).Render(""))
+	lines = append(lines, heading.Width(w).Render(" Notifications"))
+	lines = append(lines, meta.Width(w).Render("  macOS system alerts when PRs update"))
+	lines = append(lines, bgSt.Width(w).Render(""))
+	lines = append(lines, bgSt.Width(w).Render("  "+toggleStr))
+	lines = append(lines, bgSt.Width(w).Render(""))
+	lines = append(lines, boldKey.Render("  Notifies on")+bgSt.Width(w-12).Render(""))
+	lines = append(lines, meta.Width(w).Render("  · new commits"))
+	lines = append(lines, meta.Width(w).Render("  · CI updates"))
+	lines = append(lines, meta.Width(w).Render("  · new reviews"))
+	lines = append(lines, meta.Width(w).Render("  · other activity (comments, labels…)"))
+	lines = append(lines, bgSt.Width(w).Render(""))
+	lines = append(lines, meta.Width(w).Render("  press [t] to send a demo notification"))
 
 	blank := bgSt.Width(w).Render("")
 	for len(lines) < h {

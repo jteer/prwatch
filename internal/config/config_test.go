@@ -171,6 +171,45 @@ func TestLoadAndSave(t *testing.T) {
 	}
 }
 
+func TestNotificationsRoundTrip(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+
+	cfg := &Config{
+		GitHub:        GitHubCfg{Username: "alice", TokenEnv: "MY_TOKEN"},
+		Notifications: true,
+	}
+	if err := cfg.Save(path); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	loaded, err := Load(path)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if !loaded.Notifications {
+		t.Error("Notifications = false after round-trip, want true")
+	}
+}
+
+func TestNotificationsDefaultsFalse(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+
+	// Config written without notifications field
+	cfg := &Config{GitHub: GitHubCfg{Username: "alice", TokenEnv: "MY_TOKEN"}}
+	if err := cfg.Save(path); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+	loaded, err := Load(path)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if loaded.Notifications {
+		t.Error("Notifications should default to false when absent")
+	}
+}
+
 func TestLoadMissingFile(t *testing.T) {
 	_, err := Load("/does/not/exist/config.yaml")
 	if err == nil {

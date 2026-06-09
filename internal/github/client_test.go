@@ -333,7 +333,8 @@ func TestParsePRCIState(t *testing.T) {
 				CreatedAt: "2024-01-01T00:00:00Z",
 				UpdatedAt: "2024-01-01T00:00:00Z",
 				Commits: struct {
-					Nodes []struct {
+					TotalCount int `json:"totalCount"`
+					Nodes      []struct {
 						Commit struct {
 							StatusCheckRollup *struct{ State string `json:"state"` } `json:"statusCheckRollup"`
 							CheckSuites       struct {
